@@ -1,5 +1,8 @@
 # Pocket Mac：基于 UUyc companion 的技术评估与执行计划
 
+> [!TIP]
+> **项目现状**：本评估与执行计划第一阶段目标（v0.1.0）已完成开发并通过自检与压测验证。用户操作手册与项目概览请参阅 [README.md](README.md)。
+
 > 调研对象：`upstream-UUyc-companion/`（https://github.com/aoyamashou/UUyc-companion ，HEAD `f5e45dc` v1.1.3）
 > 调研环境：本机 macOS 26.5.2 (25F84)、Apple M4、单台外接 4K 显示器 U2790R3B（主屏）、Swift 6.2.4、Xcode 已装；同时装有 UURemote.app、BetterDisplay.app
 > 本文所有代码位置均相对 `upstream-UUyc-companion/`。本轮未修改任何代码。

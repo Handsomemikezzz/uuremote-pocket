@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="presetsBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F17" />
+      <stop offset="100%" stop-color="#141E33" />
+    </linearGradient>
+    <linearGradient id="cardLg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="blueGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+    <linearGradient id="purpleGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+    <filter id="pShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <style>
+    .p-title { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; font-size: 20px; font-weight: 700; fill: #FFFFFF; }
+    .p-sub { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; font-size: 13px; fill: #94A3B8; }
+    .mode-title { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; font-size: 16px; font-weight: 700; fill: #F8FAFC; }
+    .mode-dim { font-family: "SF Mono", Menlo, monospace; font-size: 13px; font-weight: 600; }
+    .tag { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; font-size: 11px; font-weight: 600; }
+    .text-body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; font-size: 12px; fill: #94A3B8; line-height: 1.5; }
+    .spec-label { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; font-size: 11px; fill: #64748B; }
+    .spec-val { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; font-size: 12px; font-weight: 600; fill: #E2E8F0; }
+  </style>
+
+  <rect width="960" height="480" rx="16" fill="url(#presetsBg)" stroke="#2A374A" stroke-width="1.5" />
+
+  <!-- Header -->
+  <g transform="translate(40, 36)">
+    <text class="p-title">精调预设 · 专为 iPhone 比例打磨的 HiDPI 视野</text>
+    <text class="p-sub" y="22">基于 iPhone 16 Pro Max / 15 Pro Max 物理视网膜级 19.5:9 比例推导，绝无黑边与画质折损</text>
+  </g>
+
+  <!-- CARD 1: 大字模式 -->
+  <g transform="translate(40, 85)" filter="url(#pShadow)">
+    <rect width="425" height="360" rx="14" fill="url(#cardLg)" stroke="#38BDF8" stroke-width="1.5" />
+    
+    <!-- Top Bar -->
+    <rect width="425" height="42" rx="14" fill="#0C4A6E" />
+    <rect y="28" width="425" height="14" fill="#0C4A6E" />
+    <text x="18" y="27" class="mode-title" fill="#BAE6FD">进入手机模式 · 大字 (Large)</text>
+    
+    <!-- Tag -->
+    <rect x="325" y="10" width="84" height="22" rx="11" fill="#0369A1" />
+    <text x="367" y="25" fill="#E0F2FE" class="tag" text-anchor="middle">最适单手阅读</text>
+
+    <!-- Visual Screen Outline comparison -->
+    <g transform="translate(24, 60)">
+      <!-- Mini Phone Mockup -->
+      <rect width="105" height="175" rx="14" fill="#071927" stroke="#0284C7" stroke-width="2" />
+      <rect x="35" y="6" width="35" height="6" rx="3" fill="#000000" />
+      <!-- Content representation: Bigger icons, larger text -->
+      <rect x="10" y="18" width="85" height="10" rx="2" fill="#0284C7" />
+      <rect x="10" y="34" width="85" height="45" rx="4" fill="#0F3556" />
+      <!-- Big text lines -->
+      <line x1="18" y1="46" x2="70" y2="46" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" />
+      <line x1="18" y1="56" x2="80" y2="56" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" />
+      <line x1="18" y1="66" x2="55" y2="66" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" />
+
+      <rect x="10" y="86" width="85" height="45" rx="4" fill="#0F3556" />
+      <line x1="18" y1="98" x2="75" y2="98" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" />
+      <line x1="18" y1="108" x2="60" y2="108" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" />
+
+      <rect x="10" y="138" width="85" height="26" rx="4" fill="#0369A1" />
+      <text x="52" y="155" fill="#FFFFFF" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">大号触控按钮</text>
+    </g>
+
+    <!-- Specs List -->
+    <g transform="translate(150, 60)">
+      <text class="spec-label">逻辑分辨率 (Points):</text>
+      <text y="20" class="mode-dim" fill="#38BDF8">660 × 1434 pt (@2x)</text>
+
+      <text y="50" class="spec-label">物理渲染像素 (Pixels):</text>
+      <text y="70" class="mode-dim" fill="#E2E8F0">1320 × 2868 px (HiDPI)</text>
+
+      <text y="100" class="spec-label">刷新率与色彩:</text>
+      <text y="120" class="spec-val">60Hz · sRGB / P3 广色域</text>
+
+      <text y="150" class="spec-label">推荐应用场景:</text>
+      <text y="172" class="text-body" fill="#CBD5E1">• 微信、飞书、钉钉移动查看回复</text>
+      <text y="192" class="text-body" fill="#CBD5E1">• 邮件通读、终端 CLI 监控与运维</text>
+      <text y="212" class="text-body" fill="#CBD5E1">• 躺平或路上单手快速处理突发工作</text>
+    </g>
+
+    <line x1="20" y1="300" x2="405" y2="300" stroke="#1E293B" stroke-width="1" />
+    <text x="20" y="324" class="text-body" fill="#94A3B8">💡 特点：字体最大，点按最准，视力友好；少数超宽应用窗口需微调。</text>
+  </g>
+
+  <!-- CARD 2: 标准模式 -->
+  <g transform="translate(495, 85)" filter="url(#pShadow)">
+    <rect width="425" height="360" rx="14" fill="url(#cardLg)" stroke="#A855F7" stroke-width="1.5" />
+
+    <!-- Top Bar -->
+    <rect width="425" height="42" rx="14" fill="#4C1D95" />
+    <rect y="28" width="425" height="14" fill="#4C1D95" />
+    <text x="18" y="27" class="mode-title" fill="#F3E8FF">进入手机模式 · 标准 (Standard)</text>
+
+    <!-- Tag -->
+    <rect x="325" y="10" width="84" height="22" rx="11" fill="#7C3AED" />
+    <text x="367" y="25" fill="#F3E8FF" class="tag" text-anchor="middle">高信息密度</text>
+
+    <!-- Visual Screen Outline comparison -->
+    <g transform="translate(24, 60)">
+      <!-- Mini Phone Mockup -->
+      <rect width="105" height="175" rx="14" fill="#170C27" stroke="#7C3AED" stroke-width="2" />
+      <rect x="35" y="6" width="35" height="6" rx="3" fill="#000000" />
+      <!-- Content representation: Higher density, more windows -->
+      <rect x="8" y="18" width="89" height="8" rx="2" fill="#6D28D9" />
+      
+      <rect x="8" y="30" width="42" height="60" rx="3" fill="#2E1065" />
+      <line x1="12" y1="40" x2="42" y2="40" stroke="#C084FC" stroke-width="1.5" />
+      <line x1="12" y1="46" x2="38" y2="46" stroke="#C084FC" stroke-width="1.5" />
+      <line x1="12" y1="52" x2="45" y2="52" stroke="#C084FC" stroke-width="1.5" />
+
+      <rect x="54" y="30" width="43" height="60" rx="3" fill="#2E1065" />
+      <line x1="58" y1="40" x2="88" y2="40" stroke="#C084FC" stroke-width="1.5" />
+      <line x1="58" y1="46" x2="82" y2="46" stroke="#C084FC" stroke-width="1.5" />
+
+      <rect x="8" y="96" width="89" height="42" rx="3" fill="#3B0764" />
+      <line x1="14" y1="106" x2="74" y2="106" stroke="#C084FC" stroke-width="1.5" />
+      <line x1="14" y1="114" x2="80" y2="114" stroke="#C084FC" stroke-width="1.5" />
+
+      <rect x="8" y="144" width="89" height="22" rx="3" fill="#581C87" />
+      <text x="52" y="159" fill="#FFFFFF" font-size="7" font-family="sans-serif" text-anchor="middle">多窗口完整容纳</text>
+    </g>
+
+    <!-- Specs List -->
+    <g transform="translate(150, 60)">
+      <text class="spec-label">逻辑分辨率 (Points):</text>
+      <text y="20" class="mode-dim" fill="#C084FC">800 × 1738 pt (@2x)</text>
+
+      <text y="50" class="spec-label">物理渲染像素 (Pixels):</text>
+      <text y="70" class="mode-dim" fill="#E2E8F0">1600 × 3476 px (HiDPI)</text>
+
+      <text y="100" class="spec-label">刷新率与色彩:</text>
+      <text y="120" class="spec-val">60Hz · sRGB / P3 广色域</text>
+
+      <text y="150" class="spec-label">推荐应用场景:</text>
+      <text y="172" class="text-body" fill="#CBD5E1">• 浏览器网页完整浏览（媲美 iPad 竖屏）</text>
+      <text y="192" class="text-body" fill="#CBD5E1">• IDE 代码查看、两栏分屏对比</text>
+      <text y="212" class="text-body" fill="#CBD5E1">• 几乎所有 macOS 原生窗口无缝容纳</text>
+    </g>
+
+    <line x1="20" y1="300" x2="405" y2="300" stroke="#1E293B" stroke-width="1" />
+    <text x="20" y="324" class="text-body" fill="#94A3B8">💡 特点：视野宽阔，应用兼容性极佳，兼顾精致细腻与高屏效。</text>
+  </g>
+</svg>

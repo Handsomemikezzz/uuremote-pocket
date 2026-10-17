@@ -1,0 +1,30 @@
+name: CI Build & Verify
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build & Test on macOS
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Swift and macOS Environment
+        run: |
+          sw_vers
+          swift --version
+
+      - name: Build Debug Products
+        run: |
+          swift build -v
+
+      - name: Build Release Bundle
+        run: |
+          scripts/build-app.sh
+          ls -la build/
