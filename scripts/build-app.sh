@@ -48,3 +48,15 @@ if [[ "${1:-}" == "--install" ]]; then
   open "/Applications/$APP_NAME.app"
   echo "✅ 已安装到 /Applications 并启动"
 fi
+
+if [[ "${1:-}" == "--dmg" ]]; then
+  DMG="build/PocketMac.dmg"
+  DMG_TEMP="build/dmg_temp"
+  rm -rf "$DMG" "$DMG_TEMP"
+  mkdir -p "$DMG_TEMP"
+  cp -R "$APP" "$DMG_TEMP/"
+  ln -s /Applications "$DMG_TEMP/Applications"
+  hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_TEMP" -ov -format UDZO "$DMG" >/dev/null
+  rm -rf "$DMG_TEMP"
+  echo "✅ 已生成 DMG 安装包：$DMG"
+fi

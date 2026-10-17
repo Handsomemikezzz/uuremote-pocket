@@ -86,9 +86,6 @@
 
 ## 🏛️ 系统架构与安全机制
 
-> [!NOTE]
-> 深入的技术调研、与上游方案的横向代码级对比及完整执行计划，请参阅：[PocketMac-技术评估与执行计划.md](PocketMac-技术评估与执行计划.md)。
-
 <div align="center">
   <img src="assets/architecture.svg" alt="Pocket Mac 架构图" width="100%">
 </div>
@@ -126,7 +123,14 @@ Pocket Mac 状态机采用单向目标收敛模型：
 - macOS 14.0 (Sonoma) 或 macOS 15+ (Sequoia)
 - 芯片：Apple Silicon (M1/M2/M3/M4 系列) 或 Intel Mac
 
-### 方式一：从源码一键构建并安装（推荐）
+### 方式一：下载 DMG 安装包（推荐）
+
+前往 [Releases 页面](https://github.com/Handsomemikezzz/uuremote-pocket/releases) 下载最新的 `PocketMac.dmg`：
+1. 打开 `PocketMac.dmg` 镜像文件。
+2. 将 **Pocket Mac** 拖入系统的 **Applications（应用程序）** 文件夹。
+3. 双击启动，macOS 菜单栏将即刻常驻 iPhone 图标。
+
+### 方式二：从源码一键构建并安装
 
 ```bash
 # 1. 克隆代码仓库
@@ -137,7 +141,7 @@ cd uuremote-pocket
 scripts/build-app.sh --install
 ```
 
-### 方式二：手动编译开发版
+### 方式三：手动编译开发版
 
 ```bash
 swift build -c release
@@ -159,9 +163,6 @@ swift build -c release
 2. 📱 **系统菜单栏**：点击菜单栏 iPhone 图标 › 点击「退出手机模式」。
 3. ⌨️ **全局快捷键**：按下 `⌃ control + ⌥ option + ⌘ command + 9` 瞬间撤出。
 4. 🛑 **直接退出应用**：在菜单栏选择「退出 Pocket Mac」或在终端 `killall PocketMac`，虚拟屏由系统底层立即销毁，主屏无缝回归物理屏。
-
-> [!NOTE]
-> 运行日志存放于 `~/Library/Logs/PocketMac.log`，可在菜单栏随时选择「打开日志」快速排查问题。
 
 ---
 
