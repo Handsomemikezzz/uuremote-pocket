@@ -13,6 +13,9 @@ struct Preset: Equatable {
     static let large = Preset(id: "large", title: "大字", pixelWidth: 1320, pixelHeight: 2868)
     static let standard = Preset(id: "standard", title: "标准", pixelWidth: 1600, pixelHeight: 3476)
     static let all = [large, standard]
+    /// 临时宽屏：macOS 26 的保存/打开面板最小宽 982pt，加上左侧 Dock 仍需 ≥1040pt 才放得下。
+    /// 与两档预设同一块虚拟屏、同一比例，只切换模式，不重建虚拟屏（UU 里选中的屏不变）
+    static let wide = Preset(id: "wide", title: "宽屏", pixelWidth: 2160, pixelHeight: 4692)
 
     static func named(_ id: String) -> Preset? { all.first { $0.id == id } }
 }

@@ -4,8 +4,9 @@
 //   - 虚拟屏尚未上线或存活不足 2.5 秒就释放，会让 WindowServer 显示配置卡死 → 释放前必须已上线且存活 ≥ 2.5 秒
 //   - applySettings 失败的屏不能立即释放（曾触发 WindowServer 崩溃）→ 放入 broken，稳定后再释放
 //   - 事务超时（CGError 1014 / cannotComplete）→ 进入保护状态，不再做任何拓扑变化
-//   - 虚拟屏只给一个模式且创建后不改；GUI 主线程不能调 CGCompleteDisplayConfiguration（放 cgQueue）
-// 相对上游的修改：不禁用物理屏；建屏前记录布局；上线超时、设主屏失败都视为失败并清理回干净状态。
+//   - 虚拟屏的模式列表创建后不改（不重新 applySettings）；GUI 主线程不能调 CGCompleteDisplayConfiguration（放 cgQueue）
+// 相对上游的修改：不禁用物理屏；建屏前记录布局；上线超时、设主屏失败都视为失败并清理回干净状态；
+// 每块屏带「预设 + 临时宽屏」两个 HiDPI 模式，用显示配置事务在两者间切换（实测 macOS 26.5 切换后可干净释放）。
 // 虚拟屏生命周期绑定本进程：进程退出或被杀时系统自动移除虚拟屏，主屏回到物理屏。
 import CGVirtualDisplayBridge
 import CoreGraphics
@@ -27,6 +28,8 @@ final class VirtualScreen {
 
     // 目标状态
     private var desired: Preset?
+    /// 手机模式中临时切到宽屏模式（放得下保存/打开面板）
+    private(set) var wide = false
     private var shutdownCompletion: (() -> Void)?
 
     // 实际状态
@@ -46,6 +49,7 @@ final class VirtualScreen {
     private var recovering = false
     private var waitOnlineTries = 0
     private var mainTries = 0
+    private var modeTries = 0
     private var bornAt: [CGDirectDisplayID: Date] = [:]
     private var releaseWaitStart: Date?
     private(set) var wedged = false
@@ -73,6 +77,12 @@ final class VirtualScreen {
     /// 手机模式已就绪时的虚拟屏
     var activeDisplayID: CGDirectDisplayID? { phase == .active ? vd?.displayID : nil }
 
+    /// 虚拟屏当前实际处于宽屏模式
+    var showingWide: Bool {
+        guard let id = vd?.displayID else { return false }
+        return DisplayConfig.hasMode(id, .wide)
+    }
+
     /// 清理是否已完成（失败状态下用于提示）
     var isClean: Bool { vd == nil && broken.isEmpty && savedOrigins.isEmpty && !recovering }
 
@@ -80,7 +90,11 @@ final class VirtualScreen {
         switch phase {
         case .idle: return "手机模式未开启"
         case .entering: return "正在进入手机模式（\(desired?.title ?? "")）…"
-        case .active: return "手机模式已开启 · \(current?.title ?? "") \(current?.sizeLabel ?? "")"
+        case .active:
+            let title = current?.title ?? ""
+            if wide != showingWide { return wide ? "正在切换到宽屏…" : "正在切回\(title)…" }
+            return showingWide ? "手机模式已开启 · 宽屏 \(Preset.wide.sizeLabel)（临时）"
+                               : "手机模式已开启 · \(title) \(current?.sizeLabel ?? "")"
         case .exiting: return "正在退出手机模式…"
         case .failed(let why): return "进入失败：\(why)\(isClean ? "（已恢复原桌面）" : "，正在清理…")"
         case .wedged: return "⛔️ 显示服务无响应：请退出 Pocket Mac，必要时注销"
@@ -97,13 +111,26 @@ final class VirtualScreen {
         }
         failure = nil
         desired = preset
+        wide = false
         kick()
     }
 
     func exit() {
         desired = nil
+        wide = false
         kick()
     }
+
+    /// 手机模式已开启时临时切到宽屏 / 切回预设
+    func setWide(_ on: Bool) {
+        guard phase == .active, on != wide else { return }
+        Log.info(on ? "切换到临时宽屏" : "切回\(current?.title ?? "")")
+        wide = on
+        modeTries = 0
+        kick()
+    }
+
+    private func targetMode(_ want: Preset) -> Preset { wide ? .wide : want }
 
     /// App 退出前：撤销一切，完成后回调
     func shutdown(completion: @escaping () -> Void) {
@@ -114,6 +141,12 @@ final class VirtualScreen {
 
     /// 启动时：读回上次未收尾的布局记录并还原
     func recoverIfNeeded() {
+        // 虚拟屏随创建它的进程消失：刚启动时就有 Pocket Mac 虚拟屏在线，说明另一个实例还活着，
+        // 记录属于它的进行中会话，不能当残留还原（否则会把它的虚拟屏挤离主屏）
+        if DisplayConfig.onlineDisplays().contains(where: DisplayConfig.isOurs) {
+            Log.info("⚠️ 另一个 Pocket Mac 的虚拟屏仍在线，跳过残留恢复")
+            return kick()
+        }
         if let data = try? Data(contentsOf: VirtualScreen.markerURL),
            let dict = try? JSONSerialization.jsonObject(with: data) as? [String: [Double]] {
             for (k, v) in dict where v.count == 2 {
@@ -299,16 +332,43 @@ final class VirtualScreen {
                 return err
             }
         }
+
+        // 临时宽屏 ↔ 预设：同一块屏只切模式
+        if let d = vd {
+            let id = d.displayID
+            let target = targetMode(want)
+            if DisplayConfig.hasMode(id, target) {
+                if modeTries > 0 {
+                    modeTries = 0
+                    Log.info("✅ 已切换：\(DisplayConfig.describe(id))")
+                }
+                return
+            }
+            guard modeTries < 3 else {
+                Log.info("⚠️ 无法切换到 \(target.title) \(target.sizeLabel)，保持：\(DisplayConfig.describe(id))")
+                wide = showingWide
+                modeTries = 0
+                return
+            }
+            modeTries += 1
+            return runCG(settle: 0.8) {
+                let err = DisplayConfig.setMode(id, target)
+                if err != .success { Log.info("⚠️ 切换模式 CGError=\(err.rawValue)") }
+                return err
+            }
+        }
     }
 
     // MARK: - 单步操作
 
     private func createDisplay(_ p: Preset) -> Bool {
+        // 帧缓冲按宽屏模式分配，预设模式与宽屏模式同在一块屏上，之后切换只改模式
+        let maxW = max(p.pixelWidth, Preset.wide.pixelWidth), maxH = max(p.pixelHeight, Preset.wide.pixelHeight)
         let desc = CGVirtualDisplayDescriptor()
         desc.name = "Pocket Mac"  // 显示在 UU 的显示屏列表、系统显示器设置中
-        desc.maxPixelsWide = UInt32(p.pixelWidth)
-        desc.maxPixelsHigh = UInt32(p.pixelHeight)
-        desc.sizeInMillimeters = CGSize(width: Double(p.pixelWidth) / 220 * 25.4, height: Double(p.pixelHeight) / 220 * 25.4)
+        desc.maxPixelsWide = UInt32(maxW)
+        desc.maxPixelsHigh = UInt32(maxH)
+        desc.sizeInMillimeters = CGSize(width: Double(maxW) / 220 * 25.4, height: Double(maxH) / 220 * 25.4)
         desc.vendorID = VirtualScreen.vendorID
         desc.productID = 0x0001
         // 每次随机序列号：与残留虚拟屏同序列号时 CGVirtualDisplay 会返回 nil
@@ -322,7 +382,9 @@ final class VirtualScreen {
         bornAt[display.displayID] = Date()
         let settings = CGVirtualDisplaySettings()
         settings.hiDPI = true
-        settings.modes = [CGVirtualDisplayMode(width: UInt(p.pointWidth), height: UInt(p.pointHeight), refreshRate: 60)]
+        settings.modes = [p, Preset.wide].map {
+            CGVirtualDisplayMode(width: UInt($0.pointWidth), height: UInt($0.pointHeight), refreshRate: 60) as Any
+        }
         guard autoreleasepool(invoking: { display.apply(settings) }) else {
             Log.info("❌ 虚拟屏 applySettings 失败，稳定后释放")
             broken.append(display)

@@ -38,6 +38,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
                 menu.addItem(it)
             }
         case .entering, .active:
+            if screen.phase == .active {
+                let title = screen.wide ? "切回\(screen.current?.title ?? "")" : "临时宽屏（\(Preset.wide.sizeLabel)，放得下保存/打开面板）"
+                menu.addItem(action(title, #selector(toggleWide)))
+            }
             let it = action("退出手机模式", #selector(exitPhoneMode), key: "9")
             it.keyEquivalentModifierMask = [.control, .option, .command]
             menu.addItem(it)
@@ -64,6 +68,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         guard let id = sender.representedObject as? String, let p = Preset.named(id) else { return }
         Log.info("菜单：进入手机模式 \(p.title)")
         screen.enter(p)
+    }
+
+    @objc private func toggleWide() {
+        Log.info("菜单：\(screen.wide ? "切回预设" : "临时宽屏")")
+        screen.setWide(!screen.wide)
     }
 
     @objc private func exitPhoneMode() {

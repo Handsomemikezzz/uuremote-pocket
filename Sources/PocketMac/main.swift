@@ -1,7 +1,8 @@
 // Pocket Mac：一键创建适合 iPhone 竖屏的虚拟屏并设为主屏，退出手机模式时还原
-// 调试：PocketMac --selftest                         两档预设各进入/退出一次并校验，退出码 0 = 通过
-//      PocketMac --stress <轮数>                      随机进入/切换预设/退出，结束后校验已还原
-//      PocketMac --enter <large|standard> [--exit-after <秒>]   启动即进入手机模式（配合 kill -9 测试）
+// 调试：PocketMac --selftest                         两档预设各进入/临时宽屏/切回/退出一次并校验，退出码 0 = 通过
+//      PocketMac --stress <轮数>                      随机进入/临时宽屏/切换预设/退出，结束后校验已还原
+//      PocketMac --enter <large|standard> [--wide] [--exit-after <秒>]   启动即进入手机模式（配合 kill -9 测试）
+//      PocketMac --panel-preview                       在当前主屏上依次展开左/右侧浮窗并打印尺寸（不建虚拟屏）
 import AppKit
 import Carbon.HIToolbox
 
@@ -17,10 +18,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.rotateIfNeeded()
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"
         Log.info("启动 Pocket Mac \(version)，CGVirtualDisplay 可用：\(VirtualScreen.available)")
+        // 只检查浮窗布局：不建虚拟屏、不碰布局记录，可在正式版运行时使用
+        if CommandLine.arguments.contains("--panel-preview") {
+            exitPanel.preview { exit(0) }
+            return
+        }
         if quitIfAlreadyRunning() { return }
 
         screen.onChange = { [weak self] in self?.stateChanged() }
         exitPanel.onExit = { [weak self] in self?.screen.exit() }
+        exitPanel.onToggleWide = { [weak self] in
+            guard let self else { return }
+            self.screen.setWide(!self.screen.wide)
+        }
         statusBar = StatusBarController(screen: screen)
         installHotkey()
         observeSystem()
@@ -34,6 +44,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { exit(await Diagnostics.stress(screen, rounds: n) ? 0 : 1) }
         } else if let i = args.firstIndex(of: "--enter"), i + 1 < args.count, let p = Preset.named(args[i + 1]) {
             screen.enter(p)
+            if args.contains("--wide") {
+                Task { [screen] in
+                    while screen.phase != .active { try? await Task.sleep(nanoseconds: 250_000_000) }
+                    screen.setWide(true)
+                }
+            }
             if let j = args.firstIndex(of: "--exit-after"), j + 1 < args.count, let s = Double(args[j + 1]) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + s) { [weak self] in self?.screen.exit() }
             }
@@ -42,14 +58,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func stateChanged() {
         statusBar?.refresh()
+        exitPanel.update(wide: screen.wide, presetTitle: screen.current?.title ?? "")
         if let id = screen.activeDisplayID { exitPanel.show(on: id) } else { exitPanel.hide() }
     }
 
-    /// 两个实例会各建一块虚拟屏、争抢主屏，只保留先启动的那个（仅 .app 运行时检查）
+    /// 两个实例会各建一块虚拟屏、争抢主屏，还共用同一份布局记录，只保留先启动的那个。
+    /// 按 Bundle ID 或可执行文件名识别，调试版（.build/debug/PocketMac）与安装版之间也互斥
     private func quitIfAlreadyRunning() -> Bool {
-        guard let id = Bundle.main.bundleIdentifier else { return false }
-        let others = NSRunningApplication.runningApplications(withBundleIdentifier: id)
-            .filter { $0.processIdentifier != getpid() }
+        let others = NSWorkspace.shared.runningApplications.filter {
+            $0.processIdentifier != getpid()
+                && ($0.bundleIdentifier == "local.pocketmac.app" || $0.executableURL?.lastPathComponent == "PocketMac")
+        }
         guard !others.isEmpty else { return false }
         Log.info("已有 Pocket Mac 在运行（pid \(others.map(\.processIdentifier))），本实例退出")
         exit(0)

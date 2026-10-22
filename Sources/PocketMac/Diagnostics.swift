@@ -56,6 +56,18 @@ enum Diagnostics {
                       "\(p.title)：像素尺寸 \(m.map { "\($0.pixelWidth)×\($0.pixelHeight)" } ?? "?")（HiDPI 2x）", &results)
                 DisplayConfig.logAll("\(p.title) 已开启")
                 await sleep(3)
+                // 临时宽屏：同一块屏切到 1080pt 再切回
+                screen.setWide(true)
+                let w = await wait(10) { screen.showingWide && screen.wide }
+                check(w && DisplayConfig.isMain(id) && screen.activeDisplayID == id,
+                      "\(p.title)：临时宽屏 \(DisplayConfig.describe(id))（同一块屏、仍是主屏）", &results)
+                DisplayConfig.logAll("\(p.title) 临时宽屏")
+                await sleep(2)
+                screen.setWide(false)
+                let back = await wait(10) { DisplayConfig.hasMode(id, p) }
+                check(back && DisplayConfig.isMain(id), "\(p.title)：切回 \(DisplayConfig.describe(id))", &results)
+                DisplayConfig.logAll("\(p.title) 切回")
+                await sleep(2)
             }
             Log.info("—— 自测：退出 \(p.title)")
             let t1 = Date()
@@ -74,6 +86,11 @@ enum Diagnostics {
             Log.info("—— 压测 \(r)/\(rounds)：进入 \(p.title)")
             screen.enter(p)
             await sleep(Double.random(in: 0.3...5))
+            if Bool.random() {
+                Log.info("—— 压测 \(r)/\(rounds)：临时宽屏 \(!screen.wide)（未开启时忽略）")
+                screen.setWide(!screen.wide)
+                await sleep(Double.random(in: 0.3...3))
+            }
             if Bool.random() {
                 let q = Preset.all.randomElement()!
                 Log.info("—— 压测 \(r)/\(rounds)：切换为 \(q.title)")

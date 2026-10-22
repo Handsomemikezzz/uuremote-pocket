@@ -46,6 +46,15 @@ enum DisplayConfig {
         }
     }
 
+    /// 只切换模式（临时宽屏 ↔ 预设）。须在后台队列调用
+    static func setMode(_ id: CGDirectDisplayID, _ p: Preset) -> CGError {
+        guard let mode = hiDPIMode(id, p) else {
+            Log.info("⚠️ 找不到 \(p.sizeLabel)pt HiDPI 模式")
+            return .failure
+        }
+        return apply { cfg in CGConfigureDisplayWithDisplayMode(cfg, id, mode, nil) }
+    }
+
     /// 一次事务完成：切到预设的 HiDPI 模式（setMode 时）+ 把 target 移到 (0,0) 成为主屏，其余屏整体平移保持相对布局。
     /// 实测（macOS 26.5）：竖屏宽度低于约 1440px 时系统默认选 1x 原生模式（画面发糊），需要显式切到 HiDPI。
     /// 须在后台队列调用
